@@ -1,0 +1,12 @@
+# ==========================================
+# Remote State Configuration Template - Staging
+# ==========================================
+# terraform {
+#   backend "s3" {
+#     bucket         = "todoist-terraform-state-staging"
+#     key            = "environments/staging/terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "todoist-terraform-locks-staging"
+#     encrypt        = true
+#   }
+# }

@@ -1,0 +1,119 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  authProvider String   @default("local") @map("auth_provider") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tasks    Task[]
+  projects Project[]
+  labels   Label[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String   @db.VarChar(255)
+  color     String?  @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections Section[]
+  tasks    Task[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model Section {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  name      String   @db.VarChar(255)
+  order     Int      @default(0) @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
+
+  @@index([projectId])
+  @@map("sections")
+}
+
+model Label {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String   @db.VarChar(255)
+  color     String?  @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskLabels TaskLabel[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("labels")
+}
+
+model TaskLabel {
+  taskId  String @map("task_id") @db.Uuid
+  labelId String @map("label_id") @db.Uuid
+
+  task  Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+  @@index([labelId])
+  @@map("task_labels")
+}
+
+model Task {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  parentTaskId String?   @map("parent_task_id") @db.Uuid
+  projectId    String?   @map("project_id") @db.Uuid
+  sectionId    String?   @map("section_id") @db.Uuid
+  title        String    @db.VarChar(500)
+  description  String?   @db.Text
+  dueDate      DateTime? @map("due_date") @db.Date
+  dueTime      String?   @map("due_time") @db.VarChar(10)
+  priority     Int       @default(4) @db.SmallInt // 1: P1 (Urgent), 2: P2 (High), 3: P3 (Medium), 4: P4 (Default)
+  isCompleted  Boolean   @default(false) @map("is_completed")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Ownership relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Self-referencing hierarchical subtask relations (Adjacency List)
+  parentTask Task?  @relation("TaskToSubtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks   Task[] @relation("TaskToSubtasks")
+
+  // Project and Section relations
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  section Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  // Label relations
+  taskLabels TaskLabel[]
+
+  @@index([userId])
+  @@index([parentTaskId])
+  @@index([projectId])
+  @@index([sectionId])
+  @@map("tasks")
+}

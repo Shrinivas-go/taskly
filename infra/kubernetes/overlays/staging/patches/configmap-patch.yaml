@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todoist-config
+data:
+  NODE_ENV: "production"
+  BACKEND_PORT: "4000"
+  FRONTEND_PORT: "3000"
+  AI_PORT: "8000"
+  NEXT_PUBLIC_API_URL: "https://staging.todoist.example.com"
+  AI_SERVICE_URL: "http://ai-service.todoist-staging.svc.cluster.local:8000"
+  AI_SERVICE_TIMEOUT: "15000"
+  CORS_ORIGINS: "https://staging.todoist.example.com"
+  AI_PROVIDER: "groq"
+  AI_MODEL: "llama-3.3-70b-versatile"

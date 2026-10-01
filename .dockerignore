@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+*/node_modules
+ai-service/.venv
+ai-service/venv
+
+# Build outputs
+dist
+*/dist
+.next
+*/.next
+coverage
+*/coverage
+
+# Git & Editor
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment & Local Secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+
+# Python Cache
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

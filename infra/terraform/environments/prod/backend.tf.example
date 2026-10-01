@@ -1,0 +1,12 @@
+# ==========================================
+# Remote State Configuration Template - Production
+# ==========================================
+# terraform {
+#   backend "s3" {
+#     bucket         = "todoist-terraform-state-prod"
+#     key            = "environments/prod/terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "todoist-terraform-locks-prod"
+#     encrypt        = true
+#   }
+# }

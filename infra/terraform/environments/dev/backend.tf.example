@@ -1,0 +1,13 @@
+# ==========================================
+# Remote State Configuration Template
+# Copy to backend.tf after provisioning the state S3 bucket and DynamoDB table.
+# ==========================================
+# terraform {
+#   backend "s3" {
+#     bucket         = "todoist-terraform-state-dev"
+#     key            = "environments/dev/terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "todoist-terraform-locks-dev"
+#     encrypt        = true
+#   }
+# }

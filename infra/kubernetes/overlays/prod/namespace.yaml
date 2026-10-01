@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todoist-prod
+  labels:
+    app.kubernetes.io/name: todoist-prod
+    environment: prod

@@ -1,0 +1,34 @@
+# Render Blueprint Specification (₹0 Free Tier Deployment)
+# Documentation: https://render.com/docs/blueprint-spec
+
+version: "1"
+
+services:
+  # ==============================================================================
+  # NestJS Backend Web Service (Free Tier)
+  # - 512 MB RAM, 0.1 CPU
+  # - Spins down after 15 min inactivity; wakes on incoming HTTP request
+  # - Automatic HTTPS on https://<service-name>.onrender.com
+  # ==============================================================================
+  - type: web
+    name: taskly-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start:prod
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false # Set in Render Dashboard: PostgreSQL connection URL from Neon or Supabase
+      - key: JWT_SECRET
+        generateValue: true # Render automatically generates a cryptographically secure random string
+      - key: CORS_ORIGINS
+        sync: false # Set to your deployed Vercel frontend URL, e.g. https://taskly.vercel.app
+      - key: AI_SERVICE_URL
+        value: http://localhost:8000

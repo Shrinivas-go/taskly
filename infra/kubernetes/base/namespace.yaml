@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todoist
+  labels:
+    app.kubernetes.io/name: todoist
+    app.kubernetes.io/part-of: todoist-application
