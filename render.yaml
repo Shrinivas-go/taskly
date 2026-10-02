@@ -57,7 +57,7 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false # Set in Render Dashboard: your Google OAuth client secret
       - key: GOOGLE_CALLBACK_URL
-        value: https://taskly-backend.onrender.com/api/v1/auth/google/callback
+        value: https://taskly-backend-rsdd.onrender.com/api/v1/auth/google/callback
 
   # ==============================================================================
   # 2. FastAPI AI Microservice (Free Tier)
@@ -94,4 +94,4 @@ services:
       - key: AI_API_KEY
         sync: false # Optional: Set in Render Dashboard only if using OpenAI or Groq
       - key: NESTJS_BACKEND_URL
-        value: https://taskly-backend.onrender.com
+        value: https://taskly-backend-rsdd.onrender.com

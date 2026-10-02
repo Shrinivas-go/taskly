@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Check, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../lib/auth-context';
+import { getApiBaseUrl } from '../../../lib/api-client';
 import { ThemeToggle } from '../../../components/theme-toggle';
 
 export default function RegisterPage() {
@@ -76,7 +77,7 @@ export default function RegisterPage() {
   }, []);
 
   const handleGoogleClick = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+    const apiUrl = getApiBaseUrl();
     window.location.href = `${apiUrl}/auth/google`;
   };
 

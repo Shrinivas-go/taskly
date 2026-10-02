@@ -20,11 +20,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       configService.get<string>('GOOGLE_CLIENT_SECRET') ||
       'dummy_secret_set_in_env';
 
+    const baseUrl =
+      configService.get<string>('RENDER_EXTERNAL_URL') ||
+      configService.get<string>('BACKEND_URL') ||
+      (process.env.NODE_ENV === 'production'
+        ? 'https://taskly-backend-rsdd.onrender.com'
+        : 'http://localhost:4000');
+
     const callbackURL =
       configService.get<string>('GOOGLE_CALLBACK_URL') ||
-      (process.env.NODE_ENV === 'production'
-        ? 'https://taskly-backend.onrender.com/api/v1/auth/google/callback'
-        : 'http://localhost:4000/api/v1/auth/google/callback');
+      `${baseUrl.replace(/\/$/, '')}/api/v1/auth/google/callback`;
 
     super({
       clientID,
