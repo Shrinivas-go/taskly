@@ -61,9 +61,10 @@ Recruiter / Reviewer Browser
    - **Region**: `Oregon` or `Ohio` (closest to your database)
    - **Root Directory**: `backend`
    - **Runtime**: `Node`
-   - **Build Command**: `npm install && npx prisma generate && npm run build`
+   - **Build Command**: `npm install --include=dev && npx prisma generate && npm run build`
    - **Start Command**: `npx prisma migrate deploy && npm run start:prod`
    - **Instance Type**: `Free`
+   *(Note: The `--include=dev` flag is mandatory so that npm installs `@nestjs/cli` and `typescript` despite `NODE_ENV=production`)*
 4. Add Environment Variables in Render Dashboard:
    - `NODE_ENV`: `production`
    - `PORT`: `10000`
