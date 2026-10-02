@@ -31,7 +31,8 @@ async function bootstrap() {
       if (
         allowedOrigins.includes(origin) ||
         (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) ||
-        origin.endsWith('.vercel.app')
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.onrender.com')
       ) {
         return callback(null, true);
       }

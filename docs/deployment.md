@@ -18,32 +18,37 @@
 
 The public student deployment enables recruiters, peers, and evaluators to access the live application without spending money or entering credit cards.
 
+All three services are deployed as independent free web services on Render from a single GitHub repository using Render Blueprints (`render.yaml`).
+
 ```
-Recruiter / Reviewer Browser
-             │
-             ▼
-[ Next.js 14 Frontend on Vercel ]  (Free Hobby Tier, Global CDN, SSL)
-             │
-             │ HTTPS REST + JWT
-             ▼
-[ NestJS Backend on Render ]       (Free Web Service, Node 20, SSL)
-             │
-      ┌──────┴──────────────────────────────────┐
-      ▼                                         ▼
-[ PostgreSQL on Neon / Supabase ]    [ AI Task Breakdown Engine ]
-(Free Serverless Postgres, SSL)      (Deterministic Heuristic Fallback / Fast Internal Mock)
+Browser Client
+     │
+     │ HTTPS
+     ▼
+[ taskly-frontend ]     (Render Free Web Service, Next.js 14, SSL)
+     │
+     │ HTTPS REST + JWT
+     ▼
+[ taskly-backend ]      (Render Free Web Service, NestJS + Prisma, SSL)
+     │
+     ├─────────────────────────────────────────┐
+     ▼                                         ▼
+[ PostgreSQL on Neon / Supabase ]      [ taskly-ai ]
+(Free Serverless Postgres, SSL)        (Render Free Web Service, FastAPI, Python 3.11)
+                                       - Default: MockProvider (100% offline, ₹0)
+                                       - Optional: Groq / OpenAI API
 ```
 
 ### 2. Free Hosting Provider Matrix
 
 | Component | Selected Provider | Plan / Tier | Credit Card Required? | Cost Risk | Free Plan Limitations & Mitigations |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Frontend** | **Vercel** | Hobby | **No** | **₹0 (Zero)** | 100 GB bandwidth/month, fast edge rendering. No overage charges without explicit upgrade. |
-| **Backend** | **Render** | Free Web Service | **No** | **₹0 (Zero)** | 512 MB RAM, 0.1 CPU. Sleeps after 15 min inactivity; wakes on incoming HTTP request (~50s cold start). 750 free instance hours/month. |
+| **Frontend (`taskly-frontend`)** | **Render** | Free Web Service | **No** | **₹0 (Zero)** | 512 MB RAM, 0.1 CPU. Sleeps after 15 min inactivity; wakes on incoming HTTP request (~50s cold start). |
+| **Backend (`taskly-backend`)** | **Render** | Free Web Service | **No** | **₹0 (Zero)** | 512 MB RAM, 0.1 CPU. Sleeps after 15 min inactivity; wakes on incoming HTTP request (~50s cold start). |
+| **AI Service (`taskly-ai`)** | **Render** | Free Web Service | **No** | **₹0 (Zero)** | 512 MB RAM, 0.1 CPU. Python 3.11 runtime. Fast mock provider responses (~5ms). |
 | **Database** | **Neon** or **Supabase** | Free Serverless | **No** | **₹0 (Zero)** | 0.5 GB storage, built-in connection pooling (`sslmode=require`). Neon suspends compute on idle and resumes in 500ms. Supabase pauses after 7 days inactivity. |
-| **AI Service** | **Internal Mock / Groq** | Free / Mock | **No** | **₹0 (Zero)** | Default `MockProvider` generates structured subtasks offline with zero API calls. Free Groq API tier optional (`llama-3.1-8b-instant`). |
-| **Domain & HTTPS** | **Vercel / Render** | Subdomain (`.vercel.app`, `.onrender.com`) | **No** | **₹0 (Zero)** | Automatic free Let's Encrypt SSL/TLS certificates. |
-| **CI/CD** | **GitHub Actions / Git Push** | Free Public / Standard | **No** | **₹0 (Zero)** | Automated test & lint checks on push; automatic deploy on push to `main`. |
+| **Domain & HTTPS** | **Render** | Subdomain (`.onrender.com`) | **No** | **₹0 (Zero)** | Automatic free Let's Encrypt SSL/TLS certificates for each service. |
+| **CI/CD** | **GitHub Actions / Render** | Free Public / Standard | **No** | **₹0 (Zero)** | Automated test & lint checks on push; automatic deploy on push to `main` via `buildFilter`. |
 
 ### 3. Step-by-Step Public Deployment Guide
 
@@ -53,41 +58,33 @@ Recruiter / Reviewer Browser
 3. Copy the pooled connection string:
    `postgresql://[user]:[password]@[host]:5432/[database]?sslmode=require`
 
-#### Step 2: Deploy Backend to Render
-1. Sign up at [render.com](https://render.com) using your GitHub account.
-2. Select **New +** -> **Web Service** and connect your GitHub repository (or use the Blueprint in `render.yaml`).
-3. Configure settings:
-   - **Name**: `taskly-backend`
-   - **Region**: `Oregon` or `Ohio` (closest to your database)
-   - **Root Directory**: `backend`
-   - **Runtime**: `Node`
-   - **Build Command**: `npm install --include=dev && npx prisma generate && npm run build`
-   - **Start Command**: `npx prisma migrate deploy && npm run start:prod`
-   - **Instance Type**: `Free`
-   *(Note: The `--include=dev` flag is mandatory so that npm installs `@nestjs/cli` and `typescript` despite `NODE_ENV=production`)*
-4. Add Environment Variables in Render Dashboard:
-   - `NODE_ENV`: `production`
-   - `PORT`: `10000`
-   - `DATABASE_URL`: `[paste your Neon/Supabase pooled connection string]`
-   - `JWT_SECRET`: `[generate a secure 32+ character random string]`
-   - `CORS_ORIGINS`: `https://[your-app-name].vercel.app`
-5. Click **Create Web Service**.
-   Render will build the project, run database migrations (`npx prisma migrate deploy`), and start the NestJS server.
-   Note down the public URL: `https://taskly-backend.onrender.com`.
+#### Step 2: Deploy All Services via Render Blueprint (`render.yaml`)
+1. Sign up / Log in to [render.com](https://render.com) using your GitHub account.
+2. In the Render Dashboard, click **New +** -> **Blueprint**.
+3. Connect your GitHub repository: `https://github.com/Shrinivas-go/taskly`.
+4. Render will detect the root `render.yaml` and parse all three services:
+   - `taskly-backend` (Node Web Service)
+   - `taskly-frontend` (Node Web Service)
+   - `taskly-ai` (Python Web Service)
+5. Fill in the prompted environment variable:
+   - `DATABASE_URL`: Paste your Neon or Supabase pooled connection string.
+6. Click **Apply**.
+   Render will provision all three services:
+   - `taskly-backend` will run migrations (`npx prisma migrate deploy`) and start NestJS on `https://taskly-backend.onrender.com`.
+   - `taskly-frontend` will build Next.js pointing to the backend and serve on `https://taskly-frontend.onrender.com`.
+   - `taskly-ai` will install Python dependencies and start FastAPI on `https://taskly-ai.onrender.com`.
 
-#### Step 3: Deploy Frontend to Vercel
-1. Sign up at [vercel.com](https://vercel.com) using your GitHub account.
-2. Click **Add New Project** and import your repository.
-3. Configure project settings:
-   - **Framework Preset**: `Next.js`
-   - **Root Directory**: Click "Edit" and choose `frontend`.
-4. Add Environment Variable:
-   - `NEXT_PUBLIC_API_URL`: `https://taskly-backend.onrender.com/api/v1`
-5. Click **Deploy**.
-   Vercel compiles the Next.js bundle and publishes your public app at `https://[your-app-name].vercel.app`.
+#### Step 3: Verify Monorepo Build Configuration
+If configuring services individually in Render (instead of Blueprint), use these exact parameters:
 
-#### Step 4: Complete CORS Handshake
-Update `CORS_ORIGINS` in your Render backend settings with the exact Vercel URL (e.g. `https://taskly.vercel.app`) if not already set.
+| Setting | `taskly-backend` | `taskly-frontend` | `taskly-ai` |
+| :--- | :--- | :--- | :--- |
+| **Environment** | Node | Node | Python 3 |
+| **Root Directory** | *(leave empty / root)* | *(leave empty / root)* | `ai-service` |
+| **Build Command** | `npm install --include=dev && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build --workspace=backend` | `npm install --include=dev && npm run build --workspace=frontend` | `pip install -r requirements.txt` |
+| **Start Command** | `npx prisma migrate deploy --schema=backend/prisma/schema.prisma && npm run start:prod --workspace=backend` | `npm run start --workspace=frontend` | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| **Health Check Path** | `/api/v1/health` | `/` | `/health` |
+| **Plan** | Free (₹0) | Free (₹0) | Free (₹0) |
 
 ---
 

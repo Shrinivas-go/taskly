@@ -1,34 +1,121 @@
-# Render Blueprint Specification (₹0 Free Tier Deployment)
+# Render Blueprint Specification (₹0 Free Tier Monorepo Deployment)
 # Documentation: https://render.com/docs/blueprint-spec
+#
+# Monorepo Structure:
+#   - taskly-backend:  NestJS + Prisma (runs from root using npm workspaces)
+#   - taskly-frontend: Next.js 14 App (runs from root using npm workspaces)
+#   - taskly-ai:       FastAPI Python service (runs in ai-service/ with Python runtime)
+#
+# All services use the Free tier (plan: free) -> Total Cost: ₹0 / month.
 
 version: "1"
 
 services:
   # ==============================================================================
-  # NestJS Backend Web Service (Free Tier)
+  # 1. NestJS Backend Web Service (Free Tier)
   # - 512 MB RAM, 0.1 CPU
-  # - Spins down after 15 min inactivity; wakes on incoming HTTP request
-  # - Automatic HTTPS on https://<service-name>.onrender.com
+  # - Sleeps after 15 min inactivity; wakes on incoming HTTP request
+  # - Automatic HTTPS on https://taskly-backend.onrender.com
   # ==============================================================================
   - type: web
     name: taskly-backend
     runtime: node
     plan: free
     region: oregon
-    rootDir: backend
-    buildCommand: npm install --include=dev && npx prisma generate && npm run build
-    startCommand: npx prisma migrate deploy && npm run start:prod
+    buildCommand: npm install --include=dev && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build --workspace=backend
+    startCommand: npx prisma migrate deploy --schema=backend/prisma/schema.prisma && npm run start:prod --workspace=backend
     healthCheckPath: /api/v1/health
+    buildFilter:
+      paths:
+        - backend/**
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - frontend/**
+        - ai-service/**
+        - docs/**
+        - "*.md"
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        sync: false # Set in Render Dashboard: PostgreSQL connection URL from Neon or Supabase
+        sync: false # Set in Render Dashboard: PostgreSQL connection URL from Neon or Supabase free tier
       - key: JWT_SECRET
         generateValue: true # Render automatically generates a cryptographically secure random string
       - key: CORS_ORIGINS
-        sync: false # Set to your deployed Vercel frontend URL, e.g. https://taskly.vercel.app
+        value: https://taskly-frontend.onrender.com
       - key: AI_SERVICE_URL
-        value: http://localhost:8000
+        value: https://taskly-ai.onrender.com
+      - key: AI_SERVICE_TIMEOUT
+        value: 35000
+
+  # ==============================================================================
+  # 2. Next.js Frontend Web Service (Free Tier)
+  # - 512 MB RAM, 0.1 CPU
+  # - Sleeps after 15 min inactivity; wakes on incoming HTTP request
+  # - Automatic HTTPS on https://taskly-frontend.onrender.com
+  # ==============================================================================
+  - type: web
+    name: taskly-frontend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install --include=dev && npm run build --workspace=frontend
+    startCommand: npm run start --workspace=frontend
+    healthCheckPath: /
+    buildFilter:
+      paths:
+        - frontend/**
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - backend/**
+        - ai-service/**
+        - docs/**
+        - "*.md"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: NEXT_PUBLIC_API_URL
+        value: https://taskly-backend.onrender.com/api/v1
+
+  # ==============================================================================
+  # 3. FastAPI AI Microservice (Free Tier)
+  # - 512 MB RAM, 0.1 CPU
+  # - Python 3.11 runtime, isolated inside ai-service directory
+  # - Automatic HTTPS on https://taskly-ai.onrender.com
+  # ==============================================================================
+  - type: web
+    name: taskly-ai
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - ai-service/**
+      ignoredPaths:
+        - backend/**
+        - frontend/**
+        - docs/**
+        - "*.md"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: AI_PROVIDER
+        value: mock
+      - key: AI_SERVICE_HOST
+        value: 0.0.0.0
+      - key: AI_SERVICE_PORT
+        value: 10000
+      - key: AI_API_KEY
+        sync: false # Optional: Set in Render Dashboard only if using OpenAI or Groq
+      - key: NESTJS_BACKEND_URL
+        value: https://taskly-backend.onrender.com
