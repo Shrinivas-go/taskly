@@ -141,7 +141,7 @@ class ApiClient {
     const config: RequestInit = {
       ...options,
       headers,
-      signal: options.signal || AbortSignal.timeout(35000),
+      signal: options.signal || AbortSignal.timeout(50000),
     };
 
     const response = await fetch(url, config);

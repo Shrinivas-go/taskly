@@ -178,6 +178,9 @@ class OpenAIProvider(AIProvider):
 
     @property
     def name(self) -> str:
+        key = self._api_key or settings.get_api_key() or ""
+        if key.startswith("gsk_"):
+            return "groq"
         return "openai"
 
     def _resolve_api_key(self) -> str:
@@ -381,7 +384,7 @@ def get_provider(provider_name: str) -> AIProvider:
     """Factory function to create the appropriate AI provider.
     
     Args:
-        provider_name: Name of the provider ("mock", "openai", "real").
+        provider_name: Name of the provider ("mock", "openai", "real", "groq", "auto").
         
     Returns:
         An AIProvider instance.
@@ -393,11 +396,13 @@ def get_provider(provider_name: str) -> AIProvider:
         "mock": MockProvider,
         "openai": OpenAIProvider,
         "real": OpenAIProvider,
+        "groq": OpenAIProvider,
+        "auto": OpenAIProvider,
     }
 
     provider_class = providers.get(provider_name.lower())
     if provider_class is None:
-        available = ", ".join(["mock", "openai"])
+        available = ", ".join(["mock", "openai", "groq", "real"])
         raise ValueError(
             f"Unknown AI provider '{provider_name}'. Available providers: {available}"
         )

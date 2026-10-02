@@ -6,6 +6,7 @@ It runs as an internal microservice behind the NestJS authentication boundary.
 
 import logging
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from .config import settings
@@ -35,7 +36,13 @@ async def lifespan(app: FastAPI):
     """Application lifespan: initialize and clean up resources."""
     global _provider
     try:
-        _provider = get_provider(settings.AI_PROVIDER)
+        provider_name = settings.AI_PROVIDER
+        # If an AI API key is configured and provider was set to mock or auto, promote to real provider
+        if settings.get_api_key() and provider_name.lower() in ("mock", "auto"):
+            logger.info("AI API key detected in environment; auto-activating real AI provider")
+            provider_name = "openai"
+
+        _provider = get_provider(provider_name)
         logger.info(f"AI Service started successfully with provider: {_provider.name}")
     except Exception as e:
         logger.error(f"Failed to initialize provider '{settings.AI_PROVIDER}': {e}")
@@ -54,6 +61,14 @@ app = FastAPI(
     description="Internal AI microservice for task breakdown and intelligent features",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

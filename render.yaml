@@ -51,7 +51,7 @@ services:
       - key: AI_SERVICE_URL
         value: https://taskly-ai.onrender.com
       - key: AI_SERVICE_TIMEOUT
-        value: 35000
+        value: 45000
       - key: GOOGLE_CLIENT_ID
         value: 110254728311-acfug1luj2l7m68l3katijarqtmb01mu.apps.googleusercontent.com
       - key: GOOGLE_CLIENT_SECRET
@@ -86,12 +86,12 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: AI_PROVIDER
-        value: mock
+        value: auto # Auto-selects Groq/OpenAI when AI_API_KEY is present; falls back to mock
       - key: AI_SERVICE_HOST
         value: 0.0.0.0
       - key: AI_SERVICE_PORT
         value: 10000
       - key: AI_API_KEY
-        sync: false # Optional: Set in Render Dashboard only if using OpenAI or Groq
+        sync: false # Set in Render Dashboard: your Groq (gsk_...) or OpenAI API key
       - key: NESTJS_BACKEND_URL
         value: https://taskly-backend-rsdd.onrender.com

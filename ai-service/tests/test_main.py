@@ -192,10 +192,13 @@ def test_get_openai_provider():
     """get_provider('openai') and 'real' should return an OpenAIProvider."""
     provider = get_provider("openai")
     assert isinstance(provider, OpenAIProvider)
-    assert provider.name == "openai"
+    assert provider.name in ("openai", "groq")
 
     real_provider = get_provider("real")
     assert isinstance(real_provider, OpenAIProvider)
+
+    groq_provider = get_provider("groq")
+    assert isinstance(groq_provider, OpenAIProvider)
 
 
 def test_get_unknown_provider_raises():

@@ -26,10 +26,11 @@ export class AiService {
   private readonly timeoutMs: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.aiServiceUrl =
-      this.configService.get<string>('AI_SERVICE_URL') || 'https://taskly-ai.onrender.com';
+    this.aiServiceUrl = (
+      this.configService.get<string>('AI_SERVICE_URL') || 'https://taskly-ai.onrender.com'
+    ).replace(/\/$/, '');
     this.timeoutMs =
-      Number(this.configService.get<number>('AI_SERVICE_TIMEOUT')) || 35000;
+      Number(this.configService.get<number>('AI_SERVICE_TIMEOUT')) || 45000;
   }
 
   /**
