@@ -45,9 +45,9 @@ services:
       - key: JWT_SECRET
         generateValue: true # Render automatically generates a cryptographically secure random string
       - key: FRONTEND_URL
-        sync: false # Set in Render Dashboard: your Vercel frontend URL, e.g. https://your-project.vercel.app
+        value: https://taskly-7w61.vercel.app
       - key: CORS_ORIGINS
-        sync: false # Set in Render Dashboard: your Vercel frontend URL, e.g. https://your-project.vercel.app
+        value: https://taskly-7w61.vercel.app
       - key: AI_SERVICE_URL
         value: https://taskly-ai.onrender.com
       - key: AI_SERVICE_TIMEOUT

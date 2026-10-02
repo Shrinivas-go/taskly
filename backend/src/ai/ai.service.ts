@@ -27,7 +27,7 @@ export class AiService {
 
   constructor(private readonly configService: ConfigService) {
     this.aiServiceUrl =
-      this.configService.get<string>('AI_SERVICE_URL') || 'http://localhost:8000';
+      this.configService.get<string>('AI_SERVICE_URL') || 'https://taskly-ai.onrender.com';
     this.timeoutMs =
       Number(this.configService.get<number>('AI_SERVICE_TIMEOUT')) || 35000;
   }

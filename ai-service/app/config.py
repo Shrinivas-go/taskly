@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     AI_TIMEOUT_SECONDS: float = 30.0
 
     # Internal service communication
-    NESTJS_BACKEND_URL: str = "http://localhost:4000"
+    NESTJS_BACKEND_URL: str = "https://taskly-backend-rsdd.onrender.com"
 
     # Rate limiting (requests per minute per client)
     AI_MAX_REQUESTS_PER_MINUTE: int = 30

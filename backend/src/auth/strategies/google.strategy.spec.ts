@@ -12,7 +12,7 @@ describe('GoogleStrategy', () => {
       get: jest.fn((key: string) => {
         if (key === 'GOOGLE_CLIENT_ID') return 'mock-client-id';
         if (key === 'GOOGLE_CLIENT_SECRET') return 'mock-client-secret';
-        if (key === 'GOOGLE_CALLBACK_URL') return 'http://localhost:4000/api/v1/auth/google/callback';
+        if (key === 'GOOGLE_CALLBACK_URL') return 'https://taskly-backend-rsdd.onrender.com/api/v1/auth/google/callback';
         return undefined;
       }),
     };

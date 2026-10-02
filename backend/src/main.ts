@@ -22,7 +22,7 @@ async function bootstrap() {
   const corsEnv = process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '';
   const allowedOrigins = corsEnv
     ? corsEnv.split(',').map((o) => o.trim())
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    : ['https://taskly-7w61.vercel.app'];
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -30,9 +30,9 @@ async function bootstrap() {
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.includes(origin) ||
-        (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) ||
         origin.endsWith('.vercel.app') ||
-        origin.endsWith('.onrender.com')
+        origin.endsWith('.onrender.com') ||
+        origin.includes('taskly-7w61')
       ) {
         return callback(null, true);
       }

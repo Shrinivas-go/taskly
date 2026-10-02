@@ -25,9 +25,7 @@ export class GoogleAuthGuard extends AuthGuard('google') {
       const frontendUrl =
         this.configService.get<string>('FRONTEND_URL') ||
         (process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',')[0].trim() : '') ||
-        (process.env.NODE_ENV === 'production'
-          ? 'https://taskly-frontend.onrender.com'
-          : 'http://localhost:3000');
+        'https://taskly-7w61.vercel.app';
 
       if (response && typeof response.redirect === 'function') {
         return response.redirect(`${frontendUrl}/login?error=oauth_not_configured`);

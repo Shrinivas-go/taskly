@@ -23,9 +23,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const baseUrl =
       configService.get<string>('RENDER_EXTERNAL_URL') ||
       configService.get<string>('BACKEND_URL') ||
-      (process.env.NODE_ENV === 'production'
-        ? 'https://taskly-backend-rsdd.onrender.com'
-        : 'http://localhost:4000');
+      'https://taskly-backend-rsdd.onrender.com';
 
     const callbackURL =
       configService.get<string>('GOOGLE_CALLBACK_URL') ||

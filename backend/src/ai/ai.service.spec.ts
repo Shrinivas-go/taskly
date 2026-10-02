@@ -14,7 +14,7 @@ describe('AiService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn((key: string) => {
-              if (key === 'AI_SERVICE_URL') return 'http://localhost:8000';
+              if (key === 'AI_SERVICE_URL') return 'https://taskly-ai.onrender.com';
               if (key === 'AI_SERVICE_TIMEOUT') return 15000;
               return undefined;
             }),
