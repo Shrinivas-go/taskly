@@ -1,11 +1,11 @@
-# Render Blueprint Specification (₹0 Free Tier Monorepo Deployment)
+# Render Blueprint Specification (₹0 Free Tier Deployment)
 # Documentation: https://render.com/docs/blueprint-spec
 #
-# Monorepo Structure:
-#   - taskly-backend:  NestJS + Prisma (runs from root using npm workspaces)
-#   - taskly-frontend: Next.js 14 App (runs from root using npm workspaces)
-#   - taskly-ai:       FastAPI Python service (runs in ai-service/ with Python runtime)
+# Services deployed on Render:
+#   - taskly-backend:  NestJS 10 + Prisma ORM (Web Service)
+#   - taskly-ai:       FastAPI Python 3.11 microservice (Web Service)
 #
+# Frontend is hosted on Vercel (https://vercel.com) for edge CDN performance.
 # All services use the Free tier (plan: free) -> Total Cost: ₹0 / month.
 
 version: "1"
@@ -44,8 +44,10 @@ services:
         sync: false # Set in Render Dashboard: PostgreSQL connection URL from Neon or Supabase free tier
       - key: JWT_SECRET
         generateValue: true # Render automatically generates a cryptographically secure random string
+      - key: FRONTEND_URL
+        sync: false # Set in Render Dashboard: your Vercel frontend URL, e.g. https://your-project.vercel.app
       - key: CORS_ORIGINS
-        value: https://taskly-frontend.onrender.com
+        sync: false # Set in Render Dashboard: your Vercel frontend URL, e.g. https://your-project.vercel.app
       - key: AI_SERVICE_URL
         value: https://taskly-ai.onrender.com
       - key: AI_SERVICE_TIMEOUT
@@ -56,43 +58,9 @@ services:
         sync: false # Set in Render Dashboard: your Google OAuth client secret
       - key: GOOGLE_CALLBACK_URL
         value: https://taskly-backend.onrender.com/api/v1/auth/google/callback
-      - key: FRONTEND_URL
-        value: https://taskly-frontend.onrender.com
 
   # ==============================================================================
-  # 2. Next.js Frontend Web Service (Free Tier)
-  # - 512 MB RAM, 0.1 CPU
-  # - Sleeps after 15 min inactivity; wakes on incoming HTTP request
-  # - Automatic HTTPS on https://taskly-frontend.onrender.com
-  # ==============================================================================
-  - type: web
-    name: taskly-frontend
-    runtime: node
-    plan: free
-    region: oregon
-    buildCommand: npm install --include=dev && npm run build --workspace=frontend
-    startCommand: npm run start --workspace=frontend
-    healthCheckPath: /
-    buildFilter:
-      paths:
-        - frontend/**
-        - package.json
-        - package-lock.json
-      ignoredPaths:
-        - backend/**
-        - ai-service/**
-        - docs/**
-        - "*.md"
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-      - key: NEXT_PUBLIC_API_URL
-        value: https://taskly-backend.onrender.com/api/v1
-
-  # ==============================================================================
-  # 3. FastAPI AI Microservice (Free Tier)
+  # 2. FastAPI AI Microservice (Free Tier)
   # - 512 MB RAM, 0.1 CPU
   # - Python 3.11 runtime, isolated inside ai-service directory
   # - Automatic HTTPS on https://taskly-ai.onrender.com
