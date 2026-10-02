@@ -142,4 +142,30 @@ describe('AuthService', () => {
       ).rejects.toThrow(UnauthorizedException);
     });
   });
+
+  describe('validateOAuthUser', () => {
+    it('should authenticate existing OAuth user without re-creating', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      const result = await service.validateOAuthUser('test@example.com', 'google');
+
+      expect(result).toHaveProperty('user');
+      expect(result).toHaveProperty('accessToken', 'mock.jwt.token');
+      expect(mockPrismaService.user.create).not.toHaveBeenCalled();
+    });
+
+    it('should create a new user with google authProvider when user does not exist', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.create.mockResolvedValue({
+        ...mockUser,
+        authProvider: 'google',
+      });
+
+      const result = await service.validateOAuthUser('newuser@example.com', 'google');
+
+      expect(result).toHaveProperty('user');
+      expect(result.user.authProvider).toBe('google');
+      expect(mockPrismaService.user.create).toHaveBeenCalled();
+    });
+  });
 });

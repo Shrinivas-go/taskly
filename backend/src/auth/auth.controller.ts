@@ -3,10 +3,13 @@ import {
   Post,
   Get,
   Body,
+  Req,
+  Res,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Response, Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -18,6 +21,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CurrentUser, AuthenticatedUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Authentication')
@@ -51,6 +55,35 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(dto);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Initiate Google OAuth2 authentication flow' })
+  @ApiResponse({ status: 302, description: 'Redirects to Google OAuth consent screen' })
+  async googleAuth() {
+    // Handled by GoogleAuthGuard which delegates to passport-google-oauth20
+  }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  @ApiOperation({ summary: 'Google OAuth2 callback redirect endpoint' })
+  @ApiResponse({ status: 302, description: 'Redirects to frontend with access token' })
+  async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const authResponse = (req as any).user as AuthResponseDto;
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      (process.env.NODE_ENV === 'production'
+        ? 'https://taskly-frontend.onrender.com'
+        : 'http://localhost:3000');
+
+    if (!authResponse || !authResponse.accessToken) {
+      return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+    }
+
+    return res.redirect(
+      `${frontendUrl}/auth/callback?token=${encodeURIComponent(authResponse.accessToken)}`,
+    );
   }
 
   @Get('me')

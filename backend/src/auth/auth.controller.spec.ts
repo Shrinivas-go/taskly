@@ -59,4 +59,28 @@ describe('AuthController', () => {
     const result = await controller.logout();
     expect(result).toEqual({ message: 'Successfully logged out' });
   });
+
+  describe('googleAuthCallback', () => {
+    it('should redirect to frontend with access token on successful OAuth login', async () => {
+      const mockReq = { user: mockAuthResponse } as any;
+      const mockRes = { redirect: jest.fn() } as any;
+
+      await controller.googleAuthCallback(mockReq, mockRes);
+
+      expect(mockRes.redirect).toHaveBeenCalledWith(
+        expect.stringContaining('/auth/callback?token=jwt-token-abc'),
+      );
+    });
+
+    it('should redirect to login with error if user has no access token', async () => {
+      const mockReq = { user: null } as any;
+      const mockRes = { redirect: jest.fn() } as any;
+
+      await controller.googleAuthCallback(mockReq, mockRes);
+
+      expect(mockRes.redirect).toHaveBeenCalledWith(
+        expect.stringContaining('/login?error=oauth_failed'),
+      );
+    });
+  });
 });

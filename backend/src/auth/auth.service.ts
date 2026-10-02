@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -106,6 +107,44 @@ export class AuthService {
     }
 
     return this.toUserProfile(user);
+  }
+
+  /**
+   * Validates or creates a user authenticated via OAuth (e.g. Google).
+   * Generates and returns JWT access token and user profile.
+   */
+  async validateOAuthUser(
+    email: string,
+    authProvider: string = 'google',
+  ): Promise<AuthResponseDto> {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    let user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      const dummyPassword = randomUUID();
+      const passwordHash = await bcrypt.hash(
+        dummyPassword,
+        this.BCRYPT_SALT_ROUNDS,
+      );
+
+      user = await this.prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          passwordHash,
+          authProvider,
+        },
+      });
+    }
+
+    const accessToken = this.generateToken(user.id, user.email);
+
+    return {
+      user: this.toUserProfile(user),
+      accessToken,
+    };
   }
 
   private generateToken(userId: string, email: string): string {

@@ -48,9 +48,23 @@ export default function LoginPage() {
     }
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get('error');
+      if (err === 'oauth_not_configured') {
+        setLocalError(
+          'Google OAuth is not configured yet. Please configure GOOGLE_CLIENT_SECRET in your backend environment variables.',
+        );
+      } else if (err === 'oauth_failed') {
+        setLocalError('Google authentication was cancelled or failed. Please try again.');
+      }
+    }
+  }, []);
+
   const handleGoogleClick = () => {
-    setOauthNotice(true);
-    setTimeout(() => setOauthNotice(false), 5000);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+    window.location.href = `${apiUrl}/auth/google`;
   };
 
   const displayError = localError || authError;

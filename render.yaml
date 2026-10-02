@@ -50,6 +50,14 @@ services:
         value: https://taskly-ai.onrender.com
       - key: AI_SERVICE_TIMEOUT
         value: 35000
+      - key: GOOGLE_CLIENT_ID
+        value: 110254728311-acfug1luj2l7m68l3katijarqtmb01mu.apps.googleusercontent.com
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false # Set in Render Dashboard: your Google OAuth client secret
+      - key: GOOGLE_CALLBACK_URL
+        value: https://taskly-backend.onrender.com/api/v1/auth/google/callback
+      - key: FRONTEND_URL
+        value: https://taskly-frontend.onrender.com
 
   # ==============================================================================
   # 2. Next.js Frontend Web Service (Free Tier)
